@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA AI | Academic Monitor</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-light: #334155;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            font-size: 0.95rem;
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            height: 100vh;
+            width: 260px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--bg-surface);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none; /* Removed underline */
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(59, 130, 246, 0.08);
+            color: var(--primary);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+        }
+
+        /* --- Cards & Panels --- */
+        .card {
+            background-color: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 18px 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- Professional Camera Feed --- */
+        .camera-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            opacity: 0.9;
+        }
+
+        /* Viewfinder Overlay (The "Academic/Tech" Look) */
+        .viewfinder-overlay {
+            position: absolute;
+            inset: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none;
+        }
+        .viewfinder-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--primary);
+            border-style: solid;
+            transition: all 0.3s;
+        }
+        .tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+        .tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+        .bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+        .br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 10px var(--primary);
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan { 0% {top: 0%; opacity: 0;} 10% {opacity: 1;} 90% {opacity: 1;} 100% {top: 100%; opacity: 0;} }
+
+        .rec-indicator {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--danger);
+            letter-spacing: 1px;
+        }
+        .blink-dot { width: 8px; height: 8px; background-color: var(--danger); border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+
+        /* --- Metrics & Data --- */
+        .metric-card {
+            background: linear-gradient(145deg, var(--bg-surface), rgba(30, 41, 59, 0.5));
+            text-align: center;
+            padding: 25px;
+        }
+        
+        .score-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 10px 0;
+        }
+        
+        .text-good { color: var(--success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+        .text-bad { color: var(--danger); text-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+
+        /* --- Drag & Drop Zone --- */
+        .drop-zone {
+            border: 2px dashed rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: rgba(255,255,255,0.02);
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .drop-zone i { font-size: 2rem; color: var(--text-secondary); margin-bottom: 10px; }
+
+        /* --- Mobile --- */
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; padding: 15px; }
+            .sidebar span, .brand-logo span { display: none; }
+            .main-content { margin-left: 80px; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="{{ url_for('home') }}" class="brand-logo">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>MIRA AI</span>
+        </a>
+        
+        <div class="d-flex flex-column h-100">
+            <a href="{{ url_for('home') }}" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            <a href="{{ url_for('streams') }}" class="nav-link"><i class="fa-solid fa-eye"></i> <span>Live Feeds</span></a>
+            <a href="{{ url_for('analytics') }}" class="nav-link"><i class="fa-solid fa-file-invoice"></i> <span>Reports</span></a>
+            <a href="{{ url_for('settings') }}" class="nav-link"><i class="fa-solid fa-sliders"></i> <span>Config</span></a>
+            
+            <div class="mt-auto">
+                <div class="p-3 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="blink-dot bg-success" style="width:6px; height:6px;"></div>
+                        <span class="small text-secondary fw-bold">SYSTEM ONLINE</span>
+                    </div>
+                    <div class="small text-secondary" style="font-size: 0.75rem;">v1.2.4 (Stable)</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        
+        <header class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-1">
+                    <h2 class="fw-bold m-0">Engagement Monitor</h2>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">MATH-101</span>
+                </div>
+                <p class="text-secondary m-0">Real-time multimodal learning analysis</p>
+            </div>
+            <div class="d-flex gap-3 align-items-center">
+                 <div class="text-end me-2 d-none d-md-block">
+                    <div class="fw-bold" id="time-display">--:--</div>
+                    <div class="small text-secondary" id="date-display">...</div>
+                </div>
+                <button class="btn btn-outline-light btn-sm" onclick="toggleCamera()">
+                    <i class="fa-solid fa-power-off me-2"></i> Camera
+                </button>
+            </div>
+        </header>
+
+        <div class="row g-4">
+            
+            <div class="col-xl-8 col-lg-7">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-video me-2 text-primary"></i> Primary Optical Feed</span>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-secondary bg-opacity-25 text-secondary">1080p</span>
+                            <span class="badge bg-secondary bg-opacity-25 text-secondary">30fps</span>
+                        </div>
+                    </div>
+                    <div class="camera-wrapper">
+                        <video id="webcam" autoplay playsinline></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                        
+                        <div class="viewfinder-overlay">
+                            <div class="viewfinder-corner tl"></div>
+                            <div class="viewfinder-corner tr"></div>
+                            <div class="viewfinder-corner bl"></div>
+                            <div class="viewfinder-corner br"></div>
+                            <div class="scan-line"></div>
+                        </div>
+                        
+                        <div class="rec-indicator">
+                            <div class="blink-dot"></div> REC
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>Temporal Analysis (60m)</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="engagementChart" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                
+                <div class="card metric-card mb-4">
+                    <div class="text-secondary small fw-bold tracking-wider">AGGREGATE SCORE</div>
+                    <div id="score-display" class="score-value text-secondary">--</div>
+                    <div id="status-badge" class="badge bg-secondary bg-opacity-25 text-secondary px-3 py-2">CALIBRATING</div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="card p-3 h-100 border-0 bg-surface-light">
+                            <div class="text-secondary small mb-1">Weather</div>
+                            <div class="fw-bold d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-cloud text-primary"></i>
+                                <span id="weather-stat">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card p-3 h-100 border-0 bg-surface-light">
+                            <div class="text-secondary small mb-1">Audio Level</div>
+                            <div class="fw-bold d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-microphone-lines text-success"></i>
+                                <span>Normal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-primary bg-opacity-10 text-primary border-primary border-opacity-25">
+                        <i class="fa-solid fa-microchip me-2"></i> MIRA Logic Core
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="fa-solid fa-lightbulb text-warning mt-1"></i>
+                            <div>
+                                <div class="small fw-bold text-secondary mb-1">RECOMMENDATION</div>
+                                <p id="ai-rec" class="m-0 fs-6">System initializing...</p>
+                            </div>
+                        </div>
+                        <hr class="border-secondary border-opacity-25 my-3">
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-dark border border-secondary text-secondary">Visual</span>
+                            <span class="badge bg-dark border border-secondary text-secondary">Audio</span>
+                            <span class="badge bg-dark border border-secondary text-secondary">Context</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Manual Analysis</div>
+                    <div class="card-body">
+                        <div class="drop-zone" id="dropZone" onclick="document.getElementById('manualFile').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <div class="fw-bold mb-1">Drop file to analyze</div>
+                            <div class="small text-secondary">or click to browse</div>
+                            <input type="file" id="manualFile" hidden onchange="uploadManual(this.files[0])">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. UI UTILITIES ---
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time-display').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date-display').innerText = now.toLocaleDateString(undefined, {weekday:'short', month:'long', day:'numeric'});
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // --- 2. CHART ---
+        const ctx = document.getElementById('engagementChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(15).fill(''),
+                datasets: [{
+                    label: 'Focus Level',
+                    data: Array(15).fill(0.5),
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 1, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // --- 3. CAMERA LOGIC ---
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        let streamActive = false;
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                streamActive = true;
+            } catch (err) {
+                console.warn("Camera access denied or unavailable.");
+            }
+        }
+        initCamera();
+
+        function toggleCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+                streamActive = false;
+            } else {
+                initCamera();
+            }
+        }
+
+        // --- 4. AI SYNC LOOP (5s) ---
+        setInterval(async () => {
+            if (!streamActive || !video.srcObject) return;
+
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('file', blob, 'live_snap.jpg');
+                try {
+                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    updateDashboard(data);
+                } catch (e) {}
+            }, 'image/jpeg');
+        }, 5000);
+
+        // --- 5. DATA UPDATE ---
+        function updateDashboard(data) {
+            // Update Score
+            const percent = (data.engagement_score * 100).toFixed(0);
+            const scoreEl = document.getElementById('score-display');
+            scoreEl.innerText = percent + "%";
+            
+            // Color Logic
+            const isGood = data.engagement_score > 0.5;
+            scoreEl.className = `score-value ${isGood ? 'text-good' : 'text-bad'}`;
+            
+            // Badge
+            const badge = document.getElementById('status-badge');
+            badge.innerText = isGood ? "OPTIMAL" : "ATTN REQ";
+            badge.className = `badge px-3 py-2 ${isGood ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger'}`;
+
+            // Rec
+            document.getElementById('ai-rec').innerText = data.recommendation;
+
+            // Chart
+            const d = chart.data.datasets[0].data;
+            d.shift();
+            d.push(data.engagement_score);
+            chart.update();
+        }
+
+        // --- 6. BACKGROUND POLLING ---
+        setInterval(async () => {
+            try {
+                const r = await fetch('/api/monitor');
+                const d = await r.json();
+                document.getElementById('weather-stat').innerText = d.weather.toUpperCase();
+            } catch(e){}
+        }, 10000);
+
+        // --- 7. DRAG & DROP LOGIC ---
+        const dropZone = document.getElementById('dropZone');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            uploadManual(files[0]);
+        });
+
+        async function uploadManual(file) {
+            if(!file) return;
+            document.getElementById('ai-rec').innerText = "Analyzing uploaded file...";
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                updateDashboard(data);
+            } catch(e) { alert("Analysis failed"); }
+        }
+    </script>
+</body>
+</html>

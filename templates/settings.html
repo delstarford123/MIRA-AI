@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MIRA AI | Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --bg-body: #0f172a; --bg-surface: #1e293b; --primary: #3b82f6; --text-primary: #f8fafc; --text-secondary: #94a3b8; }
+        body { background-color: var(--bg-body); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+        .sidebar { height: 100vh; width: 260px; position: fixed; top: 0; left: 0; background-color: var(--bg-surface); border-right: 1px solid rgba(255,255,255,0.05); padding: 24px; }
+        .nav-link { color: var(--text-secondary); padding: 12px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 4px; border-radius: 8px; }
+        .nav-link:hover, .nav-link.active { background-color: rgba(59, 130, 246, 0.08); color: var(--primary); }
+        .brand-logo { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--primary); font-size: 1.4rem; margin-bottom: 40px; display: block; text-decoration: none; }
+        .main-content { margin-left: 260px; padding: 40px; }
+        .card { background-color: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 20px; }
+        .card-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 600; text-transform: uppercase; color: var(--text-secondary); font-size: 0.8rem; }
+        .card-body { padding: 20px; }
+        .form-control, .form-select { background-color: #0f172a; border: 1px solid #334155; color: white; }
+        .form-check-input { background-color: #334155; border-color: #475569; }
+        .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <a href="{{ url_for('home') }}" class="brand-logo"><i class="fa-solid fa-layer-group"></i> <span>MIRA AI</span></a>
+        <div class="d-flex flex-column h-100">
+            <a href="{{ url_for('home') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            <a href="{{ url_for('streams') }}" class="nav-link"><i class="fa-solid fa-eye"></i> <span>Live Feeds</span></a>
+            <a href="{{ url_for('analytics') }}" class="nav-link"><i class="fa-solid fa-file-invoice"></i> <span>Reports</span></a>
+            <a href="{{ url_for('settings') }}" class="nav-link active"><i class="fa-solid fa-sliders"></i> <span>Config</span></a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <h2 class="fw-bold mb-4">System Configuration</h2>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">AI Model Parameters</div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small">ACTIVE MODEL</label>
+                            <input type="text" class="form-control" value="{{ config.model_version }}" readonly>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small">DETECTION SENSITIVITY ({{ config.sensitivity }})</label>
+                            <input type="range" class="form-range" min="0" max="1" step="0.1" value="{{ config.sensitivity }}">
+                            <div class="d-flex justify-content-between text-secondary small">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" {% if config.weather_api %}checked{% endif %}>
+                            <label class="form-check-label">Enable Weather API Integration</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Notifications & Alerts</div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" {% if config.alerts_enabled %}checked{% endif %}>
+                            <label class="form-check-label">Alert when engagement drops below 40%</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" {% if config.email_reports %}checked{% endif %}>
+                            <label class="form-check-label">Email daily summaries to Faculty</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">System Health</div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                                <span>Server Status</span>
+                                <span class="text-success fw-bold">Online (Port 5000)</span>
+                            </li>
+                            <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                                <span>Memory Usage</span>
+                                <span>450MB / 16GB</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary w-100 mb-3 p-3">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRA AI | Active Streams</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Exact CSS from Dashboard */
+        :root { --bg-body: #0f172a; --bg-surface: #1e293b; --primary: #3b82f6; --text-primary: #f8fafc; --text-secondary: #94a3b8; }
+        body { background-color: var(--bg-body); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+        .sidebar { height: 100vh; width: 260px; position: fixed; top: 0; left: 0; background-color: var(--bg-surface); border-right: 1px solid rgba(255,255,255,0.05); padding: 24px; }
+        .nav-link { color: var(--text-secondary); padding: 12px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 4px; border-radius: 8px; }
+        .nav-link:hover, .nav-link.active { background-color: rgba(59, 130, 246, 0.08); color: var(--primary); }
+        .brand-logo { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--primary); font-size: 1.4rem; margin-bottom: 40px; display: block; text-decoration: none; }
+        .main-content { margin-left: 260px; padding: 40px; }
+        .card { background-color: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; }
+        
+        .stream-card { position: relative; background: #000; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+        .stream-overlay { position: absolute; top: 15px; left: 15px; display: flex; gap: 10px; }
+        .badge-live { background: rgba(239, 68, 68, 0.8); color: white; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
+        .badge-offline { background: #334155; color: #cbd5e1; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
+        .badge-cam { background: rgba(0,0,0,0.6); color: #ccc; font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
+        .stream-meta { padding: 20px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <a href="{{ url_for('home') }}" class="brand-logo"><i class="fa-solid fa-layer-group"></i> <span>MIRA AI</span></a>
+        <div class="d-flex flex-column h-100">
+            <a href="{{ url_for('home') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            <a href="{{ url_for('streams') }}" class="nav-link active"><i class="fa-solid fa-eye"></i> <span>Live Feeds</span></a>
+            <a href="{{ url_for('analytics') }}" class="nav-link"><i class="fa-solid fa-file-invoice"></i> <span>Reports</span></a>
+            <a href="{{ url_for('settings') }}" class="nav-link"><i class="fa-solid fa-sliders"></i> <span>Config</span></a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <h2 class="fw-bold mb-4">Active Campus Feeds</h2>
+        <div class="row g-4">
+            
+            {% for stream in streams %}
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="stream-card">
+                        {% if stream.status == 'LIVE' %}
+                            <i class="fa-solid fa-video fa-3x text-secondary opacity-25"></i>
+                            <div class="stream-overlay">
+                                <span class="badge-live">LIVE</span>
+                                <span class="badge-cam">{{ stream.id }}: {{ stream.room }}</span>
+                            </div>
+                        {% else %}
+                            <i class="fa-solid fa-video-slash fa-3x text-secondary opacity-25"></i>
+                            <div class="stream-overlay">
+                                <span class="badge-offline">OFFLINE</span>
+                                <span class="badge-cam">{{ stream.id }}: {{ stream.room }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="stream-meta d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="m-0 fw-bold">{{ stream.subject }}</h6>
+                            <small class="text-secondary">Instructor: {{ stream.teacher }}</small>
+                        </div>
+                        <div class="text-end">
+                            {% if stream.status == 'LIVE' %}
+                                {% if stream.engagement > 70 %}
+                                    <div class="text-success fw-bold">{{ stream.engagement }}% Engaged</div>
+                                {% else %}
+                                    <div class="text-warning fw-bold">{{ stream.engagement }}% Engaged</div>
+                                {% endif %}
+                                <small class="text-secondary">Status: {{ stream.condition }}</small>
+                            {% else %}
+                                <div class="text-secondary fw-bold">--%</div>
+                                <small class="text-secondary">Connection Lost</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</body>
+</html>
